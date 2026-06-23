@@ -18,3 +18,8 @@ variable "db_password" {
   description = "RDSのパスワード"
   sensitive   = true
 }
+
+variable "my_ip" {
+  description = "自分のIPアドレス"
+}
+
