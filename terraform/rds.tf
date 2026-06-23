@@ -2,11 +2,20 @@ resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
   description = "Allow PostgreSQL access"
 
+  # 自分のIPからの直接アクセス（ローカルからDB操作用）
   ingress {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [var.my_ip]
+  }
+
+  # Lambdaからのアクセス
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
