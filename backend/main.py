@@ -9,7 +9,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "https://d14a6msww7i0ux.cloudfront.net"],
     allow_methods=["GET"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type"],
 )
 
 
