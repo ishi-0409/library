@@ -1,0 +1,51 @@
+# 環境変数・機密情報
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+terraform/terraform.tfvars
+terraform/*.tfvars
+deploy.md
+
+# Lambdaパッケージ（容量が大きいためGit管理しない）
+backend/package/
+backend/__pycache__/
+
+# フロントエンドのビルド成果物
+frontend/dist/
+frontend/dist-ssr/
+frontend/node_modules/
+frontend/*.local
+
+# ログ
+frontend/logs/
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+
+# DBバックアップ
+backup.sql
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/lambda.zip
+
+# エディタ
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# いらないファイル
+status_report.md
