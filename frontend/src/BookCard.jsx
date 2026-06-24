@@ -56,6 +56,7 @@ function BookCard({ book, onSimilar }) {
 
         {/* アクションボタン */}
         <div className="book-actions">
+          {/*似ている本 */}
           <button
             type="button"
             className="similar-btn"
@@ -63,6 +64,8 @@ function BookCard({ book, onSimilar }) {
           >
             似た本を見る
           </button>
+          
+          {/*試し読み */}
           {book.preview_url && (
             <a
               href={book.preview_url}
