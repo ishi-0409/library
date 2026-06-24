@@ -54,14 +54,26 @@ function BookCard({ book, onSimilar }) {
           ))}
         </div>
 
-        {/* 似た本を探す */}
-        <button
-          type="button"
-          className="similar-btn"
-          onClick={() => onSimilar(book.ideology_keywords)}
-        >
-          似た本を見る
-        </button>
+        {/* アクションボタン */}
+        <div className="book-actions">
+          <button
+            type="button"
+            className="similar-btn"
+            onClick={() => onSimilar(book.ideology_keywords)}
+          >
+            似た本を見る
+          </button>
+          {book.preview_url && (
+            <a
+              href={book.preview_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="preview-btn"
+            >
+              試し読み
+            </a>
+          )}
+        </div>
       </div>
     </div>
   )

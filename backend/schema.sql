@@ -16,6 +16,7 @@ CREATE TABLE books (
     ideology_keywords   TEXT[]       NOT NULL DEFAULT '{}',   -- マッチングに使うキーワードの配列
     author_message      TEXT,                                 -- 著者の一言（本の紹介文から抽出）
     cover_image_url     TEXT,                                 -- Google Books APIから取得した表紙画像のURL
+    preview_url         TEXT,                                 -- Google Books 試し読みリンク
     isbn                VARCHAR(20)  UNIQUE,                  -- 同じ本が重複登録されないようにISBNをユニークにする
     created_at          TIMESTAMP    DEFAULT NOW()
 );

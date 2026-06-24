@@ -252,3 +252,33 @@ button:hover {
   background: #4A90E2;
   color: white;
 }
+
+.book-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.book-actions .similar-btn {
+  margin-top: 0;
+}
+
+.preview-btn {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  background: white;
+  color: #16a34a;
+  border: 1px solid #16a34a;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.preview-btn:hover {
+  background: #16a34a;
+  color: white;
+}

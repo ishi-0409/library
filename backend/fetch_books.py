@@ -61,6 +61,7 @@ def search_book(title: str, genre: str = None):
         "ideology_keywords": info.get("categories", []),
         "author_message":    _extract_first_sentence(info.get("description", "")),
         "cover_image_url":   info.get("imageLinks", {}).get("thumbnail"),
+        "preview_url":       info.get("previewLink"),
         "isbn":              _get_isbn(info),
         "genre_name":        genre_name,
     }
@@ -81,8 +82,8 @@ def save_book(book: dict):
 
     
     cur.execute("""
-        INSERT INTO books (title, author, genre_id, ideology_keywords, author_message, cover_image_url, isbn)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO books (title, author, genre_id, ideology_keywords, author_message, cover_image_url, preview_url, isbn)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (isbn) DO NOTHING
     """, (
         book["title"],
@@ -91,6 +92,7 @@ def save_book(book: dict):
         book["ideology_keywords"],
         book["author_message"],
         book["cover_image_url"],
+        book["preview_url"],
         book["isbn"] or None,
     ))
 

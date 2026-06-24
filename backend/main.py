@@ -28,6 +28,7 @@ def match(input: str):
             "genre":             row[5],
             "genre_color":       row[6],
             "score":             row[7],
+            "preview_url":       row[8],
         }
         for row in results
         if row[7] > 0

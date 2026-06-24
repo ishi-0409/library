@@ -446,7 +446,8 @@ def match_books(user_input: str):
           b.cover_image_url, b.author_message,
           g.name as genre_name, g.color_code,
           (SELECT COUNT(*) FROM unnest(b.ideology_keywords) k
-           WHERE %s ILIKE '%%' || k || '%%') as score
+           WHERE %s ILIKE '%%' || k || '%%') as score,
+          b.preview_url
         FROM books b
         LEFT JOIN genres g ON b.genre_id = g.id
         ORDER BY score DESC
