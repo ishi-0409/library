@@ -73,7 +73,7 @@ function BookCard({ book, onSimilar }) {
               rel="noopener noreferrer"
               className="preview-btn"
             >
-              試し読み
+              詳細を見る
             </a>
           )}
         </div>
