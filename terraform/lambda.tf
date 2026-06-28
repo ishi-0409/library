@@ -23,7 +23,36 @@ resource "aws_iam_role" "lambda" {
 
 resource "aws_iam_role_policy_attachment" "lambda_basic" {
   role       = aws_iam_role.lambda.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
+resource "aws_iam_role_policy" "lambda_s3_read" {
+  name = "${var.project_name}-lambda-s3-read"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject"]
+        Resource = "arn:aws:s3:::${aws_s3_bucket.frontend.bucket}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_security_group" "lambda" {
+  name        = "${var.project_name}-lambda-sg"
+  description = "Lambda security group"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_lambda_function" "api" {
@@ -34,6 +63,11 @@ resource "aws_lambda_function" "api" {
   runtime          = "python3.12"
   source_code_hash = data.archive_file.lambda.output_base64sha256
   timeout          = 30
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.private_a.id, aws_subnet.private_c.id]
+    security_group_ids = [aws_security_group.lambda.id]
+  }
 
   environment {
     variables = {

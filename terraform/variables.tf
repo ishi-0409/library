@@ -19,7 +19,3 @@ variable "db_password" {
   sensitive   = true
 }
 
-variable "my_ip" {
-  description = "自分のIPアドレス"
-}
-

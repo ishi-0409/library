@@ -1,21 +1,18 @@
+resource "aws_db_subnet_group" "main" {
+  name       = "${var.project_name}-db-subnet-group"
+  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_c.id]
+}
+
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
-  description = "Allow PostgreSQL access"
+  description = "Allow PostgreSQL from Lambda only"
+  vpc_id      = aws_vpc.main.id
 
-  # 自分のIPからの直接アクセス（ローカルからDB操作用）
   ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [var.my_ip]
-  }
-
-  # Lambdaからのアクセス
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda.id]
   }
 
   egress {
@@ -27,16 +24,16 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_db_instance" "library" {
-  identifier          = "${var.project_name}-db"
-  engine              = "postgres"
-  engine_version      = "16"
-  instance_class      = "db.t3.micro"
-  allocated_storage   = 20
-  db_name             = var.db_name
-  username            = var.db_username
-  password            = var.db_password
-  publicly_accessible = true
-  skip_final_snapshot = true
-
+  identifier             = "${var.project_name}-db"
+  engine                 = "postgres"
+  engine_version         = "16"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 20
+  db_name                = var.db_name
+  username               = var.db_username
+  password               = var.db_password
+  publicly_accessible    = false
+  skip_final_snapshot    = true
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
 }
