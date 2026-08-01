@@ -1,17 +1,10 @@
 # ユーザーの入力した単語に対してDBに登録されている本それぞれの単語とマッチさせる機能 (DynamoDB対応)
 
 import os
-import time
-import requests
 import boto3
-from dotenv import load_dotenv
-
-load_dotenv()
 
 TABLE_NAME = os.getenv("TABLE_NAME", "library-books")
-REQUESTS_TABLE_NAME = os.getenv("REQUESTS_TABLE_NAME", "library-requests")
 AWS_REGION = os.getenv("AWS_REGION", "ap-northeast-1")
-API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY")
 
 GENRE_COLORS = {
     '哲学':     '#7C3AED',
@@ -90,9 +83,6 @@ def get_dynamodb_table():
     dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
     return dynamodb.Table(TABLE_NAME)
 
-def get_requests_table():
-    dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
-    return dynamodb.Table(REQUESTS_TABLE_NAME)
 
 # データベースにある本とマッチングさせる機能 (DynamoDB)
 def match_books(user_input: str):
@@ -133,30 +123,6 @@ def match_books(user_input: str):
 
     results.sort(key=lambda x: x[7], reverse=True)
     return results
-
-# 本のリクエストを保存する機能
-def add_book_request(title: str, author: str, genre: str, reason_keywords: str):
-    table = get_requests_table()
-    req_id = f"req_{int(time.time() * 1000)}"
-    item = {
-        "id": req_id,
-        "title": title,
-        "author": author,
-        "genre": genre,
-        "reason_keywords": reason_keywords,
-        "status": "pending",
-        "created_at": int(time.time())
-    }
-    table.put_item(Item=item)
-    return item
-
-# 届いているリクエスト一覧を取得する機能 (管理者用)
-def get_pending_requests():
-    table = get_requests_table()
-    response = table.scan()
-    items = response.get("Items", [])
-    items.sort(key=lambda x: x.get("created_at", 0), reverse=True)
-    return items
 
 if __name__ == "__main__":
     test_inputs = [
