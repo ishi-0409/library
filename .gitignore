@@ -11,6 +11,11 @@ deploy.md
 backend/package/
 backend/__pycache__/
 
+# 管理者ローカル専用ツール・サンプルデータ
+backend/view_requests.py
+backend/import_books_csv.py
+backend/sample_books.csv
+
 # フロントエンドのビルド成果物
 frontend/dist/
 frontend/dist-ssr/

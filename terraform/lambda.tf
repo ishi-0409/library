@@ -56,9 +56,13 @@ resource "aws_iam_role_policy" "lambda_dynamodb" {
           "dynamodb:Query",
           "dynamodb:GetItem",
           "dynamodb:PutItem",
-          "dynamodb:BatchWriteItem"
+          "dynamodb:BatchWriteItem",
+          "dynamodb:DeleteItem"
         ]
-        Resource = aws_dynamodb_table.books.arn
+        Resource = [
+          aws_dynamodb_table.books.arn,
+          aws_dynamodb_table.requests.arn
+        ]
       }
     ]
   })
@@ -75,7 +79,8 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.books.name
+      TABLE_NAME          = aws_dynamodb_table.books.name
+      REQUESTS_TABLE_NAME = aws_dynamodb_table.requests.name
     }
   }
 }
@@ -85,9 +90,9 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins = ["https://${aws_cloudfront_distribution.frontend.domain_name}"]
+    allow_origins = ["*"]
     allow_methods = ["GET", "POST", "OPTIONS"]
-    allow_headers = ["Content-Type"]
+    allow_headers = ["*"]
   }
 }
 
