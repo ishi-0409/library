@@ -10,11 +10,15 @@
 - DB: Amazon DynamoDB（オンデマンドモード / PAY_PER_REQUEST）
 - インフラ: AWS Lambda / API Gateway / S3 / CloudFront（完全サーバーレス構成）
 - IaC: Terraform
+- CI/CD: GitHub Actions（`git push` で自動テスト・ビルド・AWSデプロイ）
 
 ## ディレクトリ構造と主要ファイル
 
 ```text
 library/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml     # GitHub Actions 自動デプロイパイプライン定義
 ├── backend/
 │   ├── main.py            # FastAPI アプリ本体（/match エンドポイント・Mangumハンドラー）
 │   ├── matching.py        # 類語辞書 ＋ DynamoDB (boto3) スキャン＆マッチ度スコア計算ロジック
@@ -43,7 +47,7 @@ Internet
 
 - **完全サーバーレス構成**: VPCを撤去したため、LambdaのVPC接続待ちが無く、API応答速度が最速化（数百ミリ秒）。
 - **月額コスト**: **$0/月**（AWS無料利用枠・オンデマンドリクエスト従量制のためアクセスの無い時間は基本料 $0）。
-- **高可用性**: 24時間365日即時応答可能（旧RDSのように使わない時の手動停止・起動待ちが不要）。
+- **CI/CD 自動デプロイ**: GitHub に `git push main` すると、GitHub Actions が立ち上がり自動でフロントエンドのビルド、Terraformの適用、CloudFrontキャッシュ削除を実施。
 
 ## 運用・本の追加方法
 
