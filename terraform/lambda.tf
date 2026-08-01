@@ -23,7 +23,7 @@ resource "aws_iam_role" "lambda" {
 
 resource "aws_iam_role_policy_attachment" "lambda_basic" {
   role       = aws_iam_role.lambda.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_iam_role_policy" "lambda_s3_read" {
@@ -42,17 +42,26 @@ resource "aws_iam_role_policy" "lambda_s3_read" {
   })
 }
 
-resource "aws_security_group" "lambda" {
-  name        = "${var.project_name}-lambda-sg"
-  description = "Lambda security group"
-  vpc_id      = aws_vpc.main.id
+resource "aws_iam_role_policy" "lambda_dynamodb" {
+  name = "${var.project_name}-lambda-dynamodb"
+  role = aws_iam_role.lambda.id
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:Scan",
+          "dynamodb:Query",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:BatchWriteItem"
+        ]
+        Resource = aws_dynamodb_table.books.arn
+      }
+    ]
+  })
 }
 
 resource "aws_lambda_function" "api" {
@@ -64,14 +73,9 @@ resource "aws_lambda_function" "api" {
   source_code_hash = data.archive_file.lambda.output_base64sha256
   timeout          = 30
 
-  vpc_config {
-    subnet_ids         = [aws_subnet.private_a.id, aws_subnet.private_c.id]
-    security_group_ids = [aws_security_group.lambda.id]
-  }
-
   environment {
     variables = {
-      DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.library.address}:5432/${var.db_name}"
+      TABLE_NAME = aws_dynamodb_table.books.name
     }
   }
 }

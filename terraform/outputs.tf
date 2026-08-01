@@ -8,9 +8,9 @@ output "api_gateway_url" {
   value       = aws_apigatewayv2_stage.default.invoke_url
 }
 
-output "rds_endpoint" {
-  description = "RDSのエンドポイント"
-  value       = aws_db_instance.library.address
+output "dynamodb_table_name" {
+  description = "DynamoDBテーブル名"
+  value       = aws_dynamodb_table.books.name
 }
 
 output "s3_bucket_name" {

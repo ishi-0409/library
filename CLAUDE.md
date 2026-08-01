@@ -2,41 +2,65 @@
 
 ## サービス概要
 
-抽象的なキーワード（「自由」「孤独」など）から古典名著をレコメンドする個人開発Webサービス。ユーザーがキーワードを入力すると、類語辞典で語を拡張しDBの本データとマッチングして候補を返す。本データはGoogle Books APIから事前取得済み。
+抽象的なキーワード（「自由」「孤独」など）から古典名著をレコメンドする個人開発Webサービス。ユーザーがキーワードを入力すると、類語辞典で語を拡張しDBの本データとマッチングして候補を返す。
 
 **技術スタック**
 - Frontend: React / Vite（`frontend/src/`）
 - Backend: FastAPI + Mangum（`backend/main.py`, `backend/matching.py`）
-- DB: PostgreSQL on Amazon RDS（スキーマは `backend/schema.sql`）
-- インフラ: AWS Lambda / API Gateway / S3 / CloudFront
+- DB: Amazon DynamoDB（オンデマンドモード / PAY_PER_REQUEST）
+- インフラ: AWS Lambda / API Gateway / S3 / CloudFront（完全サーバーレス構成）
 - IaC: Terraform
 
-**主要ファイル**
-- `backend/main.py` — `/match` エンドポイント
-- `backend/matching.py` — 類語辞典 + DBマッチングロジック
-- `backend/fetch_books.py` — Google Books APIで本を取得しDBに登録
-- `frontend/src/BookCard.jsx` — 本カードのUIコンポーネント
+## ディレクトリ構造と主要ファイル
 
-**機能追加パターン（例: カラム追加時）**
-`books`テーブルにカラムを追加する場合は `schema.sql` → `fetch_books.py` → `matching.py` → `main.py` → JSX の順に対応する。
+```text
+library/
+├── backend/
+│   ├── main.py            # FastAPI アプリ本体（/match エンドポイント・Mangumハンドラー）
+│   ├── matching.py        # 類語辞書 ＋ DynamoDB (boto3) スキャン＆マッチ度スコア計算ロジック
+│   ├── add_new_book.py    # Google Books API 連携 ＋ DynamoDB 新規本自動登録ツール
+│   └── package/           # AWS Lambda デプロイ用モジュールパッケージ群
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx        # メインコンポーネント（検索API呼び出し・状態管理）
+│   │   └── BookCard.jsx   # 本カード表示コンポーネント（ジャンルバッジ・マッチ度・試し読み）
+├── terraform/
+│   ├── main.tf            # Provider, S3, CloudFront 定義
+│   ├── lambda.tf          # Lambda 関数, API Gateway, IAM ロール/ポリシー定義
+│   ├── dynamodb.tf        # DynamoDB テーブル (library-books) 定義
+│   ├── outputs.tf         # CloudFront URL, API Gateway URL, DynamoDBテーブル名
+│   └── variables.tf       # 共通変数定義
+└── CLAUDE.md              # 本ドキュメント
+```
 
-## インフラ構成
+## インフラ構成図
 
 ```
 Internet
-├── CloudFront → S3（public）← フロントエンド
-└── API Gateway → Lambda（private）→ RDS（private）
+├── CloudFront → S3（public）← フロントエンド (React)
+└── API Gateway → Lambda（VPCなし・超高速起動）→ DynamoDB (`library-books`)
 ```
 
-- VPC: 10.0.0.0/16、プライベートサブネット x2（ap-northeast-1a / 1c）
-- S3 Gateway Endpoint（無料）追加済み
-- Lambda SG: egress全許可
-- RDS SG: Lambda SGからの5432のみ許可
-- CloudWatchログなし（VPC Endpoint未追加のため意図的な選択）
+- **完全サーバーレス構成**: VPCを撤去したため、LambdaのVPC接続待ちが無く、API応答速度が最速化（数百ミリ秒）。
+- **月額コスト**: **$0/月**（AWS無料利用枠・オンデマンドリクエスト従量制のためアクセスの無い時間は基本料 $0）。
+- **高可用性**: 24時間365日即時応答可能（旧RDSのように使わない時の手動停止・起動待ちが不要）。
 
-## 注意点
+## 運用・本の追加方法
 
-- ローカルPCからRDSに直接接続不可（privateのため）
-- データ操作が必要な場合はLambda経由で行う必要がある
-- RDSは使わないときに停止してコスト削減: `aws rds stop-db-instance --db-instance-identifier library-db`
-- 月額コスト: RDS稼働時約$19/月、停止時約$3/月
+新しい本を追加・登録したい場合は、ローカル環境から統合ツール `add_new_book.py` を実行します。
+
+### 1. 対話形式での登録（推奨）
+```bash
+python backend/add_new_book.py
+```
+画面の案内に従って「タイトル」「著者名」「ジャンル」「キーワード」を入力するだけで、Google Books APIから表紙画像・紹介文・試し読みURLを自動取得し、DynamoDB（`library-books`）に一発で保存されます。
+
+### 2. コマンドライン引数での登録
+```bash
+python backend/add_new_book.py --title "方法序説" --author "デカルト" --genre "哲学" --keywords "合理性,疑念,真理,自己"
+```
+
+## 今後の拡張性メモ
+
+- **AI連携 (OpenAI / AWS Bedrock等)**:
+  LambdaがVPCの外で直接起動するため、NAT Gatewayなどの高額な固定費なし（$0）で、OpenAI APIやAWS Bedrockへの高速リクエストが可能です。
