@@ -48,7 +48,10 @@ jobs:
 
       - name: Package and Deploy Backend to Lambda
         run: |
-          cd backend/package
+          mkdir -p backend/build
+          pip install -r backend/requirements.txt -t backend/build
+          cp backend/main.py backend/matching.py backend/build/
+          cd backend/build
           zip -r ../../lambda.zip .
           cd ../..
           aws lambda update-function-code --function-name library-api --zip-file fileb://lambda.zip
