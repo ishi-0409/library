@@ -28,9 +28,23 @@
 |---|---|
 | Frontend | React / Vite |
 | Backend | FastAPI / Mangum |
-| Database | PostgreSQL (Amazon RDS) |
+| Database | Amazon DynamoDB |
 | インフラ | AWS Lambda / API Gateway / S3 / CloudFront |
 | IaC | Terraform |
+| CI/CD | GitHub Actions |
+
+---
+
+## インフラ構成
+
+```
+Internet
+├── CloudFront → S3（public）← フロントエンド (React)
+└── API Gateway → Lambda → DynamoDB (library-books, library-requests)
+```
+
+- **完全サーバーレス構成**: VPCなし、アクセスのない時間は基本料 **$0/月**
+- **CI/CD 自動デプロイ**: `git push main` で GitHub Actions が自動テスト・ビルド・AWSデプロイ
 
 ---
 
@@ -39,3 +53,4 @@
 - 「自由」「存在」などの抽象的なキーワードでもマッチできるよう、類義語辞書を自作してキーワードを拡張するマッチングロジックを実装
 - インフラをTerraformでコード化し、AWS構成を再現可能な状態で管理
 - FastAPI + Mangum によるサーバーレス構成でバックエンドをLambda上で動作させる設計を採用
+- GitHub Actions によるCI/CDパイプラインで、pushするだけで本番環境へ自動デプロイ

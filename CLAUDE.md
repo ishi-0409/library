@@ -4,7 +4,7 @@
 
 抽象的なキーワード（「自由」「孤独」など）から古典名著をレコメンドする個人開発Webサービス。ユーザーがキーワードを入力すると、類語辞典で語を拡張しDBの本データとマッチングして候補を返す。
 
-ユーザーからの「本追加リクエスト」フォームを備え、届いたリクエストを管理者が確認してワンポチでDynamoDBに本登録できる。
+
 
 **技術スタック**
 - Frontend: React / Vite（`frontend/src/`）
@@ -25,7 +25,6 @@ library/
 │   ├── main.py            # FastAPI アプリ本体（/match, /requests エンドポイント）
 │   ├── matching.py        # 類語辞書 ＋ DynamoDB (boto3) ロジック
 │   ├── import_books_csv.py# CSVファイルからの本大量一括登録ツール
-│   ├── view_requests.py   # ユーザーリクエスト確認 ＋ ワンポチ自動登録ツール
 │   ├── sample_books.csv   # 一括インポート用サンプルCSVファイル
 │   └── package/           # AWS Lambda デプロイ用モジュールパッケージ群
 ├── frontend/
@@ -53,19 +52,3 @@ Internet
 - **完全サーバーレス構成**: VPCなし、アクセスの無い時間は基本料 **$0/月**。
 - **CI/CD 自動デプロイ**: GitHub に `git push main` すると、GitHub Actions が自動デプロイ。
 
-## 運用・ユーザーリクエストの処理方法
-
-1. **ユーザーがWeb画面からリクエストを送信**
-   Webサイトの「📩 本をリクエスト」ボタンからユーザーが「追加してほしい本」を提出。
-
-2. **管理者がリクエストを確認・ワンポチ登録**
-   ローカルのターミナルで以下を実行：
-   ```bash
-   python backend/view_requests.py
-   ```
-   届いているリクエスト一覧が表示されるので、登録したい番号を入力するだけで、Google Books APIから表紙・紹介文を全自動取得して DynamoDB (`library-books`) に保存完了！
-
-3. **CSVからの大量一括登録**
-   ```bash
-   python backend/import_books_csv.py backend/sample_books.csv
-   ```
