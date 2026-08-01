@@ -22,11 +22,6 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.7.0'
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -40,21 +35,20 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy Infrastructure & Lambda (Terraform)
-        run: |
-          cd terraform
-          terraform init
-          terraform apply -auto-approve
-
       - name: Deploy Frontend to S3 & Invalidate CloudFront
         run: |
-          S3_BUCKET=$(cd terraform && terraform output -raw s3_bucket_name)
-          CF_DIST_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName=='${S3_BUCKET}.s3-website-ap-northeast-1.amazonaws.com'].Id" --output text)
-          
-          echo "Deploying to S3 bucket: $S3_BUCKET"
+          S3_BUCKET="library-frontend-de4njeoj"
+          CF_DIST_ID="E2YZ3BGG2EI1JE"
+
+          echo "Deploying frontend to S3 bucket: $S3_BUCKET"
           aws s3 sync frontend/dist s3://$S3_BUCKET --delete
 
-          if [ -n "$CF_DIST_ID" ] && [ "$CF_DIST_ID" != "None" ]; then
-            echo "Invalidating CloudFront cache: $CF_DIST_ID"
-            aws cloudfront create-invalidation --distribution-id $CF_DIST_ID --paths "/*"
-          fi
+          echo "Invalidating CloudFront cache..."
+          aws cloudfront create-invalidation --distribution-id $CF_DIST_ID --paths "/*"
+
+      - name: Package and Deploy Backend to Lambda
+        run: |
+          cd backend/package
+          zip -r ../../lambda.zip .
+          cd ../..
+          aws lambda update-function-code --function-name library-api --zip-file fileb://lambda.zip
