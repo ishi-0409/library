@@ -1,7 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from pydantic import BaseModel
 from matching import match_books, add_book_request, get_pending_requests
 
 app = FastAPI()
@@ -12,12 +11,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-
-class RequestCreate(BaseModel):
-    title: str
-    author: str = ""
-    genre: str = "哲学"
-    reason_keywords: str = ""
 
 @app.get("/match")
 def match(input: str):
@@ -39,15 +32,20 @@ def match(input: str):
     ]
 
 @app.post("/requests")
-def create_request(req: RequestCreate):
-    if not req.title.strip():
+def create_request(data: dict = Body(...)):
+    title = str(data.get("title", ""))
+    author = str(data.get("author", ""))
+    genre = str(data.get("genre", "哲学"))
+    reason_keywords = str(data.get("reason_keywords", ""))
+
+    if not title.strip():
         raise HTTPException(status_code=400, detail="タイトルは必須です")
-    
+
     created_item = add_book_request(
-        title=req.title.strip(),
-        author=req.author.strip(),
-        genre=req.genre.strip(),
-        reason_keywords=req.reason_keywords.strip()
+        title=title.strip(),
+        author=author.strip(),
+        genre=genre.strip(),
+        reason_keywords=reason_keywords.strip()
     )
     return {"status": "success", "request": created_item}
 
