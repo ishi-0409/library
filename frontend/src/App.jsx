@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import SearchForm from './SearchForm'
 import BookCard from './BookCard'
-import BookRequestModal from './BookRequestModal'
 import './App.css'
 
 function App() {
@@ -10,7 +9,6 @@ function App() {
   const [searched, setSearched] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [error, setError] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // APIをたたいて本を検索する関数
   const handleSearch = async (input) => {
@@ -42,9 +40,6 @@ function App() {
     <div className="container">
       <header className="app-header">
         <h1>思想で本を探そう</h1>
-        <button className="add-book-btn" onClick={() => setIsModalOpen(true)}>
-          📩 本をリクエスト
-        </button>
       </header>
 
       <SearchForm onSearch={handleSearch} value={searchInput} onChange={setSearchInput} />
@@ -63,10 +58,6 @@ function App() {
         ))}
       </div>
 
-      <BookRequestModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </div>
   )
 }
